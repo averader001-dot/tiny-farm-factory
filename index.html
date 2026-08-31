@@ -2,56 +2,223 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Tiny Farm Factory</title>
+<title>Tiny Farm Factory V.02</title>
 <style>
+  :root{ --tilt: 38deg; }
   body {
     font-family: 'Segoe UI', sans-serif;
-    background: #d9f2c4;
+    background: linear-gradient(#bfe6f5, #d9f2c4);
     text-align: center;
     margin: 0;
     padding: 20px;
   }
-  h1 { color: #e07b39; text-shadow: 1px 1px #fff; }
+  h1 {
+    color: #e07b39;
+    text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff;
+    font-size: 32px;
+    margin-bottom: 4px;
+  }
   #login-screen input {
     padding: 10px; font-size: 16px; border-radius: 8px;
     border: 2px solid #e07b39; margin-right: 8px;
   }
   #login-screen button, .action-btn {
-    padding: 10px 18px; font-size: 16px; border: none;
+    padding: 10px 18px; font-size: 15px; border: none;
     border-radius: 8px; background: #e07b39; color: white;
-    cursor: pointer;
+    cursor: pointer; margin: 3px;
   }
   #login-screen button:hover, .action-btn:hover { background: #c9631f; }
+  .action-btn.heart-btn { background: #e0507b; }
+  .action-btn.heart-btn:hover { background: #c23a63; }
+  .action-btn.buy-btn { background: #4a9c5d; }
+  .action-btn.buy-btn:hover { background: #357a45; }
+  .action-btn:disabled { background:#aaa; cursor:not-allowed; }
+
   #stats {
-    display: flex; justify-content: center; gap: 30px;
-    font-size: 18px; font-weight: bold; margin-bottom: 20px;
+    display: flex; justify-content: center; gap: 24px;
+    font-size: 18px; font-weight: bold; margin-bottom: 16px;
+    background: white; max-width: 620px; margin-left:auto; margin-right:auto;
+    padding: 10px; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,.1);
+    flex-wrap: wrap;
+  }
+
+  /* ================= FARM SCENE ================= */
+  #farm-scene {
+    position: relative;
+    max-width: 720px;
+    min-height: 460px;
+    margin: 0 auto 24px;
+    background: linear-gradient(#eafcd4, #cdeea3);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 6px #ffffffaa, 0 6px 18px rgba(0,0,0,.15);
+    padding-top: 20px;
+  }
+
+  .plots-stage {
+    perspective: 900px;
+    margin: 10px auto 10px;
+    width: fit-content;
   }
   #plots-grid {
     display: grid;
-    grid-template-columns: repeat(3, 120px);
-    gap: 15px;
-    justify-content: center;
-    margin-bottom: 30px;
+    grid-template-columns: repeat(3, 110px);
+    gap: 20px;
+    transform: rotateX(var(--tilt));
+    transform-style: preserve-3d;
   }
   .plot {
-    width: 120px; height: 120px;
+    width: 110px; height: 110px;
     background: linear-gradient(#8b5a2b, #6b4423);
-    border-radius: 16px;
+    border-radius: 14px;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    color: white; font-size: 14px;
+    color: white; font-size: 13px;
     cursor: pointer; user-select: none;
-    box-shadow: 0 4px 0 #4a2f18;
+    box-shadow: 0 10px 0 #4a2f18, 0 14px 14px rgba(0,0,0,.25);
+    border: 3px solid #a97c50;
     transition: transform 0.1s;
+    position: relative;
   }
-  .plot:active { transform: scale(0.96); }
+  .plot:active { transform: scale(0.96) translateY(2px); }
   .plot.empty { background: linear-gradient(#a97c50, #7a5230); }
   .plot.growing { background: linear-gradient(#7bab5c, #5a8a3e); }
-  .plot.ready { background: linear-gradient(#f4c542, #e0a71e); }
-  .plot .emoji { font-size: 36px; }
+  .plot.ready {
+    background: linear-gradient(#f4c542, #e0a71e);
+    animation: readyPulse 1s ease-in-out infinite;
+  }
+  @keyframes readyPulse {
+    0%,100%{ box-shadow: 0 10px 0 #4a2f18, 0 0 0 rgba(255,220,80,0); }
+    50%{ box-shadow: 0 10px 0 #4a2f18, 0 0 22px rgba(255,220,80,.9); }
+  }
+  .plot .emoji { font-size: 34px; }
+
+  /* Machine */
+  .machine {
+    position: absolute;
+    left: 24px; top: 190px;
+    width: 92px; height: 92px;
+    border-radius: 50% 50% 46% 46% / 60% 60% 40% 40%;
+    background: radial-gradient(circle at 35% 25%, #ffb84d, #e0710c);
+    box-shadow: 0 10px 16px rgba(0,0,0,.3);
+    z-index: 3;
+  }
+  .machine .stem { position:absolute; top:-14px; left:50%; transform: translateX(-50%); font-size: 20px; }
+  .machine .screen {
+    position:absolute; bottom:14px; left:50%; transform:translateX(-50%);
+    width:52px; height:16px; background:#dfffe0; border-radius:4px;
+    display:flex; align-items:center; justify-content:center; font-size:8px; color:#333;
+  }
+  .machine.working { animation: machineShake .3s infinite; }
+  @keyframes machineShake {
+    0%,100%{ transform: translateX(0) rotate(0deg); }
+    25%{ transform: translateX(-2px) rotate(-1deg); }
+    75%{ transform: translateX(2px) rotate(1deg); }
+  }
+
+  /* Conveyor */
+  .conveyor {
+    position: absolute;
+    left: 100px; top: 240px;
+    width: 220px; height: 24px;
+    background: repeating-linear-gradient(90deg,#999 0 10px,#777 10px 20px);
+    border-radius: 6px;
+    transform: rotate(-6deg);
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,.2);
+    z-index: 2;
+  }
+  .conveyor .item {
+    position: absolute; top: 1px; font-size: 16px;
+    animation: moveBelt 3.5s linear infinite;
+  }
+  @keyframes moveBelt {
+    from { left: -24px; }
+    to { left: 230px; }
+  }
+
+  /* Player avatar */
+  .player-avatar {
+    position: absolute;
+    width: 56px; height: 56px;
+    z-index: 10;
+    transition: left 0.5s ease, top 0.5s ease;
+  }
+  .player-avatar .body {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffe8d1, #ffcf9e);
+    box-shadow: 0 8px 10px rgba(0,0,0,.25);
+    position: relative;
+  }
+  .player-avatar .body::before {
+    content:"";
+    position:absolute; top:20px; left:15px;
+    width:6px; height:6px; background:#3a2b20; border-radius:50%;
+    box-shadow: 20px 0 0 #3a2b20;
+  }
+  .player-avatar .body::after {
+    content:"";
+    position:absolute; top:31px; left:22px;
+    width:14px; height:7px; border-bottom:3px solid #3a2b20;
+    border-radius:0 0 14px 14px;
+  }
+
+  /* NPC worker */
+  .npc-worker {
+    position: absolute; font-size: 42px; z-index: 5;
+    top: 30px; left: 40px;
+    animation: npcWalk 8s ease-in-out infinite;
+  }
+  @keyframes npcWalk {
+    0%   { left: 30px; }
+    45%  { left: 340px; }
+    50%  { left: 340px; transform: scaleX(-1); }
+    95%  { left: 30px; transform: scaleX(-1); }
+    100% { left: 30px; transform: scaleX(1); }
+  }
+
   #inventory-box {
-    background: white; border-radius: 12px; padding: 15px;
-    max-width: 300px; margin: 0 auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    background: white; border-radius: 14px; padding: 16px;
+    max-width: 460px; margin: 0 auto 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+  .inv-item {
+    display:flex; align-items:center; justify-content:space-between;
+    gap:8px; padding:8px 4px; border-bottom:1px solid #eee; flex-wrap:wrap;
+  }
+  .inv-item:last-child{ border-bottom:none; }
+  .inv-item .info { font-size:15px; text-align:left; }
+  .inv-item .btns { display:flex; gap:6px; }
+  .bulk-row { margin-top: 10px; }
+  #shop-box {
+    background:white; border-radius:14px; padding:14px; max-width:460px; margin:0 auto 60px;
+    box-shadow: 0 4px 10px rgba(0,0,0,.1);
+  }
+
+  /* Plant selection modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55);
+    display: none; align-items: center; justify-content: center; z-index: 200;
+  }
+  .modal-box {
+    background: white; border-radius: 16px; padding: 20px;
+    width: 90%; max-width: 340px; box-shadow: 0 8px 24px rgba(0,0,0,.3);
+  }
+  .modal-box h3 { margin-top:0; }
+  .crop-choice-btn {
+    display:block; width:100%; text-align:left; margin:8px 0;
+    padding: 12px; font-size: 15px; background:#f4f9ef; color:#333;
+    border:2px solid #cde3b8; border-radius:10px; cursor:pointer;
+  }
+  .crop-choice-btn:hover { background:#e6f5da; }
+
+  /* Version badge */
+  #version-badge {
+    position: fixed; bottom: 10px; right: 14px;
+    background: #e07b39; color: white; font-size: 12px;
+    padding: 5px 12px; border-radius: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,.25);
+    z-index: 999; font-weight: bold;
   }
 </style>
 </head>
@@ -69,49 +236,97 @@
 <div id="game-screen" style="display:none">
   <div id="stats">
     <div>👤 <span id="player-name"></span></div>
-    <div>💰 <span id="coins">0</span> เหรียญ</div>
+    <div>🪙 <span id="coins">0</span> เหรียญ</div>
+    <div>❤️ <span id="hearts">0</span> หัวใจ</div>
   </div>
 
-  <div id="plots-grid"></div>
+  <div id="farm-scene">
+    <div class="npc-worker">🧑‍🌾</div>
+    <div class="machine" id="machine">
+      <div class="stem">🏭</div>
+      <div class="screen">FACTORY</div>
+    </div>
+    <div class="conveyor" id="conveyor">
+      <span class="item" style="animation-delay:0s">🥕</span>
+      <span class="item" style="animation-delay:1.2s">🍅</span>
+      <span class="item" style="animation-delay:2.4s">🌽</span>
+    </div>
+    <div class="plots-stage">
+      <div id="plots-grid"></div>
+    </div>
+    <div class="player-avatar" id="player-avatar" style="left:300px; top:340px;">
+      <div class="body"></div>
+    </div>
+  </div>
 
   <div id="inventory-box">
     <h3>🎒 คลังผัก</h3>
     <div id="inventory-list">ยังไม่มีผักในคลัง</div>
-    <button class="action-btn" onclick="sellAll()">ขายทั้งหมด</button>
+    <div class="bulk-row">
+      <button class="action-btn" onclick="sellAllDirect()">💰 ขายทั้งหมด (ตรง)</button>
+      <button class="action-btn heart-btn" onclick="processSellAll()">🏭 แปรรูปขายทั้งหมด</button>
+    </div>
+  </div>
+
+  <div id="shop-box">
+    <h3>🛒 อัพเกรดฟาร์ม</h3>
+    <div id="plot-count-info">แปลงทั้งหมด: 0</div>
+    <button class="action-btn buy-btn" id="buy-plot-btn" onclick="buyPlot()">ซื้อแปลงใหม่</button>
   </div>
 </div>
+
+<!-- Modal เลือกเมล็ดพันธุ์ -->
+<div id="plant-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h3>🌱 เลือกเมล็ดพันธุ์</h3>
+    <div id="crop-choices"></div>
+    <button class="action-btn" onclick="closePlantModal()" style="width:100%">ยกเลิก</button>
+  </div>
+</div>
+
+<div id="version-badge">V.02</div>
 
 <!-- โหลด Supabase library -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 // ===== ตั้งค่า Supabase (แก้ 2 บรรทัดนี้เป็นของคุณ) =====
-const SUPABASE_URL = "https://liuetggqgvhyfyjdjuck.supabase.co/";
-const SUPABASE_KEY = "sb_publishable_dGq6ZrgoxcooBoT2-Y7-GQ_DODw_Deh";
+const SUPABASE_URL = "ใส่ Project URL ของคุณตรงนี้";
+const SUPABASE_KEY = "ใส่ anon public key ของคุณตรงนี้";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentPlayer = null;
-let cropConfig = { carrot: { grow_seconds: 30, sell_price: 5 } };
+let pendingPlot = null;
+
+// ค่า default ของพืชแต่ละชนิด (ถ้าไม่มีใน DB จะใช้ค่านี้)
+let cropConfig = {
+  carrot: { grow_seconds: 30, sell_price: 5 },
+  tomato: { grow_seconds: 60, sell_price: 12 },
+  corn:   { grow_seconds: 90, sell_price: 20 }
+};
+
+const CROP_EMOJI = { carrot: "🥕", tomato: "🍅", corn: "🌽" };
+
+const HARVEST_REWARD = 2;      // เหรียญที่ได้ทันทีตอนเก็บเกี่ยว
+const JUICE_MULTIPLIER = 2;    // ราคาขายหลังแปรรูป = ราคาเดิม x เท่านี้
+const MAX_PLOTS = 12;
 
 // ===== เริ่มเกม =====
 async function startGame() {
   const username = document.getElementById("username-input").value.trim();
   if (!username) { alert("กรุณาใส่ชื่อผู้เล่น"); return; }
 
-  // เช็คว่ามีผู้เล่นนี้อยู่แล้วหรือยัง
   let { data: existing } = await sb.from("players").select("*").eq("username", username).single();
 
   if (existing) {
     currentPlayer = existing;
   } else {
-    // สร้างผู้เล่นใหม่
     let { data: newPlayer, error } = await sb.from("players")
-      .insert({ username: username })
+      .insert({ username: username, coins: 0, hearts: 0 })
       .select().single();
     if (error) { alert("เกิดข้อผิดพลาด: " + error.message); return; }
     currentPlayer = newPlayer;
 
-    // สร้างแปลงปลูกเริ่มต้น 6 แปลง
     const defaultPlots = Array.from({ length: 6 }, () => ({
       player_id: currentPlayer.id, status: "empty"
     }));
@@ -124,30 +339,36 @@ async function startGame() {
 
   await loadCropConfig();
   await refreshGame();
-  setInterval(refreshGame, 1000); // อัพเดททุก 1 วินาที
+  setInterval(refreshGame, 1000);
 }
 
-// ===== โหลดค่าคอนฟิกพืช =====
 async function loadCropConfig() {
   let { data } = await sb.from("crop_config").select("*");
-  data.forEach(c => {
+  data?.forEach(c => {
     cropConfig[c.crop_name] = { grow_seconds: c.grow_seconds, sell_price: c.sell_price };
   });
 }
 
 // ===== รีเฟรชข้อมูลเกมทั้งหมด =====
 async function refreshGame() {
-  // อัพเดทเหรียญ
-  let { data: player } = await sb.from("players").select("coins").eq("id", currentPlayer.id).single();
+  let { data: player } = await sb.from("players").select("coins, hearts").eq("id", currentPlayer.id).single();
   document.getElementById("coins").innerText = player.coins;
+  document.getElementById("hearts").innerText = player.hearts ?? 0;
 
-  // โหลดแปลงปลูก
   let { data: plots } = await sb.from("plots").select("*").eq("player_id", currentPlayer.id);
   renderPlots(plots);
+  document.getElementById("plot-count-info").innerText = `แปลงทั้งหมด: ${plots.length} / ${MAX_PLOTS}`;
+  const buyBtn = document.getElementById("buy-plot-btn");
+  const cost = getPlotCost(plots.length);
+  buyBtn.innerText = `ซื้อแปลงใหม่ (${cost} เหรียญ)`;
+  buyBtn.disabled = plots.length >= MAX_PLOTS;
 
-  // โหลดคลังผัก
   let { data: inventory } = await sb.from("inventory").select("*").eq("player_id", currentPlayer.id).gt("quantity", 0);
   renderInventory(inventory);
+}
+
+function getPlotCost(currentCount) {
+  return 50 + Math.max(0, currentCount - 6) * 25;
 }
 
 // ===== แสดงผลแปลงปลูก =====
@@ -166,7 +387,7 @@ function renderPlots(plots) {
       const now = Date.now();
       if (now >= readyTime) {
         statusClass = "ready";
-        content = "🥕";
+        content = CROP_EMOJI[plot.crop_type] || "🥕";
         label = "เก็บเกี่ยว!";
       } else {
         statusClass = "growing";
@@ -178,37 +399,94 @@ function renderPlots(plots) {
 
     div.className = "plot " + statusClass;
     div.innerHTML = `<div class="emoji">${content}</div><div>${label}</div>`;
-    div.onclick = () => handlePlotClick(plot, statusClass);
+    div.onclick = () => handlePlotClick(plot, statusClass, div);
     grid.appendChild(div);
   });
 }
 
+// ===== เดินตัวละครไปยัง element เป้าหมาย =====
+function movePlayerTo(targetEl) {
+  const scene = document.getElementById("farm-scene");
+  const avatar = document.getElementById("player-avatar");
+  const sceneRect = scene.getBoundingClientRect();
+  const targetRect = targetEl.getBoundingClientRect();
+
+  const left = targetRect.left - sceneRect.left + targetRect.width / 2 - 28;
+  const top = targetRect.top - sceneRect.top + targetRect.height - 30;
+
+  avatar.style.left = left + "px";
+  avatar.style.top = top + "px";
+}
+
+function triggerMachineEffect() {
+  const machine = document.getElementById("machine");
+  machine.classList.add("working");
+  setTimeout(() => machine.classList.remove("working"), 900);
+}
+
 // ===== คลิกที่แปลงปลูก =====
-async function handlePlotClick(plot, statusClass) {
+function handlePlotClick(plot, statusClass, plotEl) {
+  movePlayerTo(plotEl);
+
   if (statusClass === "empty") {
-    // ปลูกแครอท
-    const growSeconds = cropConfig.carrot.grow_seconds;
-    const readyAt = new Date(Date.now() + growSeconds * 1000).toISOString();
-    await sb.from("plots").update({
-      crop_type: "carrot", status: "growing",
-      planted_at: new Date().toISOString(), ready_at: readyAt
-    }).eq("id", plot.id);
+    openPlantModal(plot);
   } else if (statusClass === "ready") {
-    // เก็บเกี่ยว
-    await sb.from("plots").update({
-      crop_type: null, status: "empty", planted_at: null, ready_at: null
-    }).eq("id", plot.id);
-
-    // เพิ่มเข้าคลัง
-    let { data: existingItem } = await sb.from("inventory")
-      .select("*").eq("player_id", currentPlayer.id).eq("item_type", "carrot").single();
-
-    if (existingItem) {
-      await sb.from("inventory").update({ quantity: existingItem.quantity + 1 }).eq("id", existingItem.id);
-    } else {
-      await sb.from("inventory").insert({ player_id: currentPlayer.id, item_type: "carrot", quantity: 1 });
-    }
+    harvestPlot(plot);
   }
+}
+
+// ===== Modal เลือกเมล็ดพันธุ์ =====
+function openPlantModal(plot) {
+  pendingPlot = plot;
+  const container = document.getElementById("crop-choices");
+  container.innerHTML = "";
+  Object.keys(cropConfig).forEach(cropName => {
+    const cfg = cropConfig[cropName];
+    const emoji = CROP_EMOJI[cropName] || "🌱";
+    const btn = document.createElement("button");
+    btn.className = "crop-choice-btn";
+    btn.innerHTML = `${emoji} <b>${cropName}</b> — โต ${cfg.grow_seconds} วิ | ขาย ${cfg.sell_price}🪙/ชิ้น`;
+    btn.onclick = () => selectCrop(cropName);
+    container.appendChild(btn);
+  });
+  document.getElementById("plant-modal").style.display = "flex";
+}
+
+function closePlantModal() {
+  document.getElementById("plant-modal").style.display = "none";
+  pendingPlot = null;
+}
+
+async function selectCrop(cropName) {
+  if (!pendingPlot) return;
+  const growSeconds = cropConfig[cropName].grow_seconds;
+  const readyAt = new Date(Date.now() + growSeconds * 1000).toISOString();
+  await sb.from("plots").update({
+    crop_type: cropName, status: "growing",
+    planted_at: new Date().toISOString(), ready_at: readyAt
+  }).eq("id", pendingPlot.id);
+  closePlantModal();
+  refreshGame();
+}
+
+// ===== เก็บเกี่ยว =====
+async function harvestPlot(plot) {
+  const cropType = plot.crop_type;
+  await sb.from("plots").update({
+    crop_type: null, status: "empty", planted_at: null, ready_at: null
+  }).eq("id", plot.id);
+
+  let { data: existingItem } = await sb.from("inventory")
+    .select("*").eq("player_id", currentPlayer.id).eq("item_type", cropType).single();
+
+  if (existingItem) {
+    await sb.from("inventory").update({ quantity: existingItem.quantity + 1 }).eq("id", existingItem.id);
+  } else {
+    await sb.from("inventory").insert({ player_id: currentPlayer.id, item_type: cropType, quantity: 1 });
+  }
+
+  let { data: p } = await sb.from("players").select("coins").eq("id", currentPlayer.id).single();
+  await sb.from("players").update({ coins: p.coins + HARVEST_REWARD }).eq("id", currentPlayer.id);
   refreshGame();
 }
 
@@ -219,27 +497,116 @@ function renderInventory(inventory) {
     list.innerText = "ยังไม่มีผักในคลัง";
     return;
   }
-  list.innerHTML = inventory.map(item =>
-    `🥕 ${item.item_type} x ${item.quantity}`
-  ).join("<br>");
+  list.innerHTML = "";
+  inventory.forEach(item => {
+    const price = cropConfig[item.item_type]?.sell_price || 0;
+    const emoji = CROP_EMOJI[item.item_type] || "🥬";
+    const row = document.createElement("div");
+    row.className = "inv-item";
+    row.innerHTML = `
+      <div class="info">${emoji} ${item.item_type} x ${item.quantity}<br>
+        <small>ตรง: ${price}🪙+1❤️/ชิ้น | แปรรูป: ${price*JUICE_MULTIPLIER}🪙+2❤️/ชิ้น</small>
+      </div>
+      <div class="btns">
+        <button class="action-btn" onclick="sellDirect('${item.item_type}')">💰 ขายตรง</button>
+        <button class="action-btn heart-btn" onclick="processSell('${item.item_type}')">🏭 แปรรูปขาย</button>
+      </div>`;
+    list.appendChild(row);
+  });
 }
 
-// ===== ขายผักทั้งหมด =====
-async function sellAll() {
-  let { data: inventory } = await sb.from("inventory").select("*").eq("player_id", currentPlayer.id).gt("quantity", 0);
+// ===== ขายตรง (item เดียว) =====
+async function sellDirect(itemType) {
+  let { data: item } = await sb.from("inventory").select("*")
+    .eq("player_id", currentPlayer.id).eq("item_type", itemType).single();
+  if (!item || item.quantity <= 0) return;
 
-  let totalEarned = 0;
+  const price = cropConfig[itemType]?.sell_price || 0;
+  const earned = price * item.quantity;
+  const heartsGained = item.quantity * 1;
+
+  await sb.from("inventory").update({ quantity: 0 }).eq("id", item.id);
+  await addCoinsAndHearts(earned, heartsGained);
+  alert(`ขายตรง ${item.quantity} ชิ้น ได้ ${earned}🪙 +${heartsGained}❤️`);
+  refreshGame();
+}
+
+// ===== แปรรูปแล้วขาย (item เดียว) =====
+async function processSell(itemType) {
+  let { data: item } = await sb.from("inventory").select("*")
+    .eq("player_id", currentPlayer.id).eq("item_type", itemType).single();
+  if (!item || item.quantity <= 0) return;
+
+  triggerMachineEffect();
+
+  const price = (cropConfig[itemType]?.sell_price || 0) * JUICE_MULTIPLIER;
+  const earned = price * item.quantity;
+  const heartsGained = item.quantity * 2;
+
+  await sb.from("inventory").update({ quantity: 0 }).eq("id", item.id);
+  await addCoinsAndHearts(earned, heartsGained);
+  setTimeout(() => {
+    alert(`แปรรูปขาย ${item.quantity} ชิ้น ได้ ${earned}🪙 +${heartsGained}❤️`);
+    refreshGame();
+  }, 500);
+}
+
+// ===== ขายทั้งหมดแบบตรง =====
+async function sellAllDirect() {
+  let { data: inventory } = await sb.from("inventory").select("*").eq("player_id", currentPlayer.id).gt("quantity", 0);
+  let totalCoins = 0, totalHearts = 0;
   for (const item of inventory) {
     const price = cropConfig[item.item_type]?.sell_price || 0;
-    totalEarned += price * item.quantity;
+    totalCoins += price * item.quantity;
+    totalHearts += item.quantity;
     await sb.from("inventory").update({ quantity: 0 }).eq("id", item.id);
   }
-
-  if (totalEarned > 0) {
-    let { data: player } = await sb.from("players").select("coins").eq("id", currentPlayer.id).single();
-    await sb.from("players").update({ coins: player.coins + totalEarned }).eq("id", currentPlayer.id);
-    alert(`ขายได้ ${totalEarned} เหรียญ!`);
+  if (totalCoins > 0) {
+    await addCoinsAndHearts(totalCoins, totalHearts);
+    alert(`ขายตรงทั้งหมด ได้ ${totalCoins}🪙 +${totalHearts}❤️`);
   }
+  refreshGame();
+}
+
+// ===== แปรรูปขายทั้งหมด =====
+async function processSellAll() {
+  let { data: inventory } = await sb.from("inventory").select("*").eq("player_id", currentPlayer.id).gt("quantity", 0);
+  if (!inventory || inventory.length === 0) return;
+  triggerMachineEffect();
+
+  let totalCoins = 0, totalHearts = 0;
+  for (const item of inventory) {
+    const price = (cropConfig[item.item_type]?.sell_price || 0) * JUICE_MULTIPLIER;
+    totalCoins += price * item.quantity;
+    totalHearts += item.quantity * 2;
+    await sb.from("inventory").update({ quantity: 0 }).eq("id", item.id);
+  }
+  if (totalCoins > 0) {
+    await addCoinsAndHearts(totalCoins, totalHearts);
+    setTimeout(() => alert(`แปรรูปขายทั้งหมด ได้ ${totalCoins}🪙 +${totalHearts}❤️`), 500);
+  }
+  refreshGame();
+}
+
+async function addCoinsAndHearts(coins, hearts) {
+  let { data: p } = await sb.from("players").select("coins, hearts").eq("id", currentPlayer.id).single();
+  await sb.from("players").update({
+    coins: p.coins + coins,
+    hearts: (p.hearts ?? 0) + hearts
+  }).eq("id", currentPlayer.id);
+}
+
+// ===== ซื้อแปลงใหม่ =====
+async function buyPlot() {
+  let { data: plots } = await sb.from("plots").select("id").eq("player_id", currentPlayer.id);
+  const cost = getPlotCost(plots.length);
+  if (plots.length >= MAX_PLOTS) { alert("แปลงเต็มแล้ว!"); return; }
+
+  let { data: p } = await sb.from("players").select("coins").eq("id", currentPlayer.id).single();
+  if (p.coins < cost) { alert("เหรียญไม่พอ!"); return; }
+
+  await sb.from("players").update({ coins: p.coins - cost }).eq("id", currentPlayer.id);
+  await sb.from("plots").insert({ player_id: currentPlayer.id, status: "empty" });
   refreshGame();
 }
 </script>
