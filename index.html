@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Tiny Farm Factory</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #d9f2c4;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 { color: #e07b39; text-shadow: 1px 1px #fff; }
+  #login-screen input {
+    padding: 10px; font-size: 16px; border-radius: 8px;
+    border: 2px solid #e07b39; margin-right: 8px;
+  }
+  #login-screen button, .action-btn {
+    padding: 10px 18px; font-size: 16px; border: none;
+    border-radius: 8px; background: #e07b39; color: white;
+    cursor: pointer;
+  }
+  #login-screen button:hover, .action-btn:hover { background: #c9631f; }
+  #stats {
+    display: flex; justify-content: center; gap: 30px;
+    font-size: 18px; font-weight: bold; margin-bottom: 20px;
+  }
+  #plots-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 120px);
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+  .plot {
+    width: 120px; height: 120px;
+    background: linear-gradient(#8b5a2b, #6b4423);
+    border-radius: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: white; font-size: 14px;
+    cursor: pointer; user-select: none;
+    box-shadow: 0 4px 0 #4a2f18;
+    transition: transform 0.1s;
+  }
+  .plot:active { transform: scale(0.96); }
+  .plot.empty { background: linear-gradient(#a97c50, #7a5230); }
+  .plot.growing { background: linear-gradient(#7bab5c, #5a8a3e); }
+  .plot.ready { background: linear-gradient(#f4c542, #e0a71e); }
+  .plot .emoji { font-size: 36px; }
+  #inventory-box {
+    background: white; border-radius: 12px; padding: 15px;
+    max-width: 300px; margin: 0 auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+</style>
+</head>
+<body>
+
+<h1>🥕 Tiny Farm Factory</h1>
+
+<!-- หน้า Login -->
+<div id="login-screen">
+  <input type="text" id="username-input" placeholder="ตั้งชื่อผู้เล่น...">
+  <button onclick="startGame()">เริ่มเล่น</button>
+</div>
+
+<!-- หน้าเกม -->
+<div id="game-screen" style="display:none">
+  <div id="stats">
+    <div>👤 <span id="player-name"></span></div>
+    <div>💰 <span id="coins">0</span> เหรียญ</div>
+  </div>
+
+  <div id="plots-grid"></div>
+
+  <div id="inventory-box">
+    <h3>🎒 คลังผัก</h3>
+    <div id="inventory-list">ยังไม่มีผักในคลัง</div>
+    <button class="action-btn" onclick="sellAll()">ขายทั้งหมด</button>
+  </div>
+</div>
+
+<!-- โหลด Supabase library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+// ===== ตั้งค่า Supabase (แก้ 2 บรรทัดนี้เป็นของคุณ) =====
+const SUPABASE_URL = "https://liuetggqgvhyfyjdjuck.supabase.co/";
+const SUPABASE_KEY = "sb_publishable_dGq6ZrgoxcooBoT2-Y7-GQ_DODw_Deh";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentPlayer = null;
+let cropConfig = { carrot: { grow_seconds: 30, sell_price: 5 } };
+
+// ===== เริ่มเกม =====
+async function startGame() {
+  const username = document.getElementById("username-input").value.trim();
+  if (!username) { alert("กรุณาใส่ชื่อผู้เล่น"); return; }
+
+  // เช็คว่ามีผู้เล่นนี้อยู่แล้วหรือยัง
+  let { data: existing } = await sb.from("players").select("*").eq("username", username).single();
+
+  if (existing) {
+    currentPlayer = existing;
+  } else {
+    // สร้างผู้เล่นใหม่
+    let { data: newPlayer, error } = await sb.from("players")
+      .insert({ username: username })
+      .select().single();
+    if (error) { alert("เกิดข้อผิดพลาด: " + error.message); return; }
+    currentPlayer = newPlayer;
+
+    // สร้างแปลงปลูกเริ่มต้น 6 แปลง
+    const defaultPlots = Array.from({ length: 6 }, () => ({
+      player_id: currentPlayer.id, status: "empty"
+    }));
+    await sb.from("plots").insert(defaultPlots);
+  }
+
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("game-screen").style.display = "block";
+  document.getElementById("player-name").innerText = currentPlayer.username;
+
+  await loadCropConfig();
+  await refreshGame();
+  setInterval(refreshGame, 1000); // อัพเดททุก 1 วินาที
+}
+
+// ===== โหลดค่าคอนฟิกพืช =====
+async function loadCropConfig() {
+  let { data } = await sb.from("crop_config").select("*");
+  data.forEach(c => {
+    cropConfig[c.crop_name] = { grow_seconds: c.grow_seconds, sell_price: c.sell_price };
+  });
+}
+
+// ===== รีเฟรชข้อมูลเกมทั้งหมด =====
+async function refreshGame() {
+  // อัพเดทเหรียญ
+  let { data: player } = await sb.from("players").select("coins").eq("id", currentPlayer.id).single();
+  document.getElementById("coins").innerText = player.coins;
+
+  // โหลดแปลงปลูก
+  let { data: plots } = await sb.from("plots").select("*").eq("player_id", currentPlayer.id);
+  renderPlots(plots);
+
+  // โหลดคลังผัก
+  let { data: inventory } = await sb.from("inventory").select("*").eq("player_id", currentPlayer.id).gt("quantity", 0);
+  renderInventory(inventory);
+}
+
+// ===== แสดงผลแปลงปลูก =====
+function renderPlots(plots) {
+  const grid = document.getElementById("plots-grid");
+  grid.innerHTML = "";
+
+  plots.forEach(plot => {
+    const div = document.createElement("div");
+    let statusClass = "empty";
+    let content = "➕";
+    let label = "ว่าง";
+
+    if (plot.status === "growing") {
+      const readyTime = new Date(plot.ready_at).getTime();
+      const now = Date.now();
+      if (now >= readyTime) {
+        statusClass = "ready";
+        content = "🥕";
+        label = "เก็บเกี่ยว!";
+      } else {
+        statusClass = "growing";
+        const secLeft = Math.ceil((readyTime - now) / 1000);
+        content = "🌱";
+        label = secLeft + " วิ";
+      }
+    }
+
+    div.className = "plot " + statusClass;
+    div.innerHTML = `<div class="emoji">${content}</div><div>${label}</div>`;
+    div.onclick = () => handlePlotClick(plot, statusClass);
+    grid.appendChild(div);
+  });
+}
+
+// ===== คลิกที่แปลงปลูก =====
+async function handlePlotClick(plot, statusClass) {
+  if (statusClass === "empty") {
+    // ปลูกแครอท
+    const growSeconds = cropConfig.carrot.grow_seconds;
+    const readyAt = new Date(Date.now() + growSeconds * 1000).toISOString();
+    await sb.from("plots").update({
+      crop_type: "carrot", status: "growing",
+      planted_at: new Date().toISOString(), ready_at: readyAt
+    }).eq("id", plot.id);
+  } else if (statusClass === "ready") {
+    // เก็บเกี่ยว
+    await sb.from("plots").update({
+      crop_type: null, status: "empty", planted_at: null, ready_at: null
+    }).eq("id", plot.id);
+
+    // เพิ่มเข้าคลัง
+    let { data: existingItem } = await sb.from("inventory")
+      .select("*").eq("player_id", currentPlayer.id).eq("item_type", "carrot").single();
+
+    if (existingItem) {
+      await sb.from("inventory").update({ quantity: existingItem.quantity + 1 }).eq("id", existingItem.id);
+    } else {
+      await sb.from("inventory").insert({ player_id: currentPlayer.id, item_type: "carrot", quantity: 1 });
+    }
+  }
+  refreshGame();
+}
+
+// ===== แสดงคลังผัก =====
+function renderInventory(inventory) {
+  const list = document.getElementById("inventory-list");
+  if (!inventory || inventory.length === 0) {
+    list.innerText = "ยังไม่มีผักในคลัง";
+    return;
+  }
+  list.innerHTML = inventory.map(item =>
+    `🥕 ${item.item_type} x ${item.quantity}`
+  ).join("<br>");
+}
+
+// ===== ขายผักทั้งหมด =====
+async function sellAll() {
+  let { data: inventory } = await sb.from("inventory").select("*").eq("player_id", currentPlayer.id).gt("quantity", 0);
+
+  let totalEarned = 0;
+  for (const item of inventory) {
+    const price = cropConfig[item.item_type]?.sell_price || 0;
+    totalEarned += price * item.quantity;
+    await sb.from("inventory").update({ quantity: 0 }).eq("id", item.id);
+  }
+
+  if (totalEarned > 0) {
+    let { data: player } = await sb.from("players").select("coins").eq("id", currentPlayer.id).single();
+    await sb.from("players").update({ coins: player.coins + totalEarned }).eq("id", currentPlayer.id);
+    alert(`ขายได้ ${totalEarned} เหรียญ!`);
+  }
+  refreshGame();
+}
+</script>
+
+</body>
+</html>
