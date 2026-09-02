@@ -11,12 +11,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;
   display:flex;align-items:center;justify-content:center;padding:16px;color:#3a2c1a}
 .screen{display:none;width:100%;max-width:760px}
 .screen.on{display:block}
-h1{text-align:center;font-size:2rem;margin-bottom:18px;color:#5a3d1e;
-  text-shadow:0 2px 0 #fff}
+h1{text-align:center;font-size:2rem;margin-bottom:18px;color:#5a3d1e;text-shadow:0 2px 0 #fff}
 .card{background:#fffdf6;border-radius:22px;padding:26px;
   box-shadow:0 10px 30px rgba(90,61,30,.18);border:3px solid #f0e2c4}
 input{width:100%;padding:13px 15px;margin-bottom:12px;border:2px solid #e2d5b8;
-  border-radius:12px;font-size:1rem;background:#fffef9;outline:none}
+  border-radius:12px;font-size:1rem;background:#fffef9;outline:none;font-family:inherit}
 input:focus{border-color:#f0a04b}
 button{width:100%;padding:13px;border:none;border-radius:12px;font-size:1.02rem;
   font-weight:700;cursor:pointer;margin-bottom:10px;transition:.15s;font-family:inherit}
@@ -26,8 +25,6 @@ button:active{transform:translateY(2px)}
 .b3{background:#ece4d4;color:#6b573a;box-shadow:0 4px 0 #cfc3ab}
 button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .err{color:#d9403a;font-size:.9rem;text-align:center;min-height:20px}
-
-/* ===== HUD บาร์บน ===== */
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;
   background:#fffdf6;border:3px solid #f0e2c4;border-radius:18px;padding:10px 14px;
   margin-bottom:14px;box-shadow:0 6px 18px rgba(90,61,30,.15);flex-wrap:wrap}
@@ -35,8 +32,6 @@ button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .stat{background:#fff6e3;padding:5px 12px;border-radius:999px;border:2px solid #f3e0bd}
 .rest{width:auto;margin:0;padding:9px 18px;background:#7e57c2;color:#fff;
   border-radius:999px;box-shadow:0 4px 0 #5e35a1;font-size:.95rem}
-
-/* ===== แปลงผัก ===== */
 .field{background:linear-gradient(#9ccc65,#7cb342);border:6px solid #8d6e4a;
   border-radius:24px;padding:16px;box-shadow:inset 0 0 40px rgba(0,0,0,.15),
   0 8px 24px rgba(0,0,0,.2);margin-bottom:14px}
@@ -52,8 +47,7 @@ button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
   filter:drop-shadow(0 3px 3px rgba(0,0,0,.35))}
 .plot.empty .icon{font-size:1.9rem;opacity:.45}
 .plot.ready{animation:glow 1.1s ease-in-out infinite alternate}
-@keyframes glow{to{box-shadow:inset 0 8px 16px rgba(0,0,0,.3),0 5px 0 #4d3018,
-  0 0 22px 5px #ffe082}}
+@keyframes glow{to{box-shadow:inset 0 8px 16px rgba(0,0,0,.3),0 5px 0 #4d3018,0 0 22px 5px #ffe082}}
 .plot.ready .icon{animation:pop .8s ease-in-out infinite alternate}
 @keyframes pop{to{transform:scale(1.14) rotate(-4deg)}}
 .bar{position:absolute;left:10px;right:10px;bottom:9px;height:7px;
@@ -62,10 +56,7 @@ button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
   border-radius:99px;transition:width .4s}
 .tag{position:absolute;top:7px;right:9px;font-size:.68rem;font-weight:800;
   color:#fff;background:rgba(0,0,0,.45);padding:2px 7px;border-radius:99px}
-
-/* ===== ร้าน / เครื่องจักร ===== */
-.panel{background:#fffdf6;border:3px solid #f0e2c4;border-radius:18px;
-  padding:16px;margin-bottom:14px}
+.panel{background:#fffdf6;border:3px solid #f0e2c4;border-radius:18px;padding:16px;margin-bottom:14px}
 .panel h3{font-size:1.05rem;margin-bottom:10px;color:#5a3d1e}
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px;
   padding:9px 0;border-bottom:1px dashed #ece0c6}
@@ -74,8 +65,6 @@ button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .row button{width:auto;margin:0;padding:9px 16px;font-size:.88rem;white-space:nowrap}
 .lv{display:inline-block;background:#8bc34a;color:#fff;font-size:.72rem;
   padding:2px 9px;border-radius:99px;font-weight:800;margin-left:6px}
-
-/* ===== modal เลือกเมล็ด ===== */
 .mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
   align-items:center;justify-content:center;padding:20px;z-index:50}
 .mask.on{display:flex}
@@ -84,15 +73,12 @@ button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .seed:hover{background:#fff6e3;border-color:#f0a04b}
 .seed.no{opacity:.4;cursor:not-allowed}
 .seed .e{font-size:2rem}
-
-/* ===== เกมคนงาน ===== */
 #cv{display:block;margin:0 auto;background:linear-gradient(#cfeeff,#e9f7c9);
   border-radius:18px;border:5px solid #8d6e4a;touch-action:none;max-width:100%}
 .center{text-align:center}
 .big{font-size:2.6rem;font-weight:900;color:#f0a04b}
 .lb{font-size:.92rem}
-.lb div{display:flex;justify-content:space-between;padding:6px 0;
-  border-bottom:1px dashed #ece0c6}
+.lb div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #ece0c6}
 </style>
 </head>
 <body>
@@ -132,7 +118,7 @@ button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
   </div>
 </div>
 
-<!-- 4) ฟาร์ม (เจ้าของ) -->
+<!-- 4) ฟาร์ม -->
 <div class="screen" id="s-farm">
   <div class="topbar">
     <div class="stats">
@@ -215,11 +201,16 @@ button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ================= ตั้งค่า ================= */
+/* ================= Supabase ================= */
 const SB_URL = 'https://liuetggqgvhyfyjdjuck.supabase.co';
-const SB_KEY = 'ใส่_ANON_KEY_ตรงนี้';
+const SB_KEY = 'sb_publishable_dGq6ZrgoxcooBoT2-Y7-GQ_DODw_Deh';
 const db = supabase.createClient(SB_URL, SB_KEY);
 
+const $ = id => document.getElementById(id);
+const show = id => { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  $(id).classList.add('on'); };
+
+/* ================= ค่าคงที่เกม ================= */
 const PLOT_COUNT = 9;
 const CROPS = [
   {id:'carrot', e:'🥕', n:'แครอท',        cost:8,  sec:25,  sell:15},
@@ -230,15 +221,11 @@ const CROPS = [
 const FERT_MAX = 5, JAM_MAX = 5;
 const fertCost = lv => 60 * (lv + 1);
 const jamCost  = lv => 150 * (lv + 1);
-const fertMul  = lv => 1 - 0.12 * lv;          // Lv.5 = โตไวขึ้น 60%
+const fertMul  = lv => 1 - 0.12 * lv;
 const jamSec   = lv => Math.round(30 / (1 + .25 * (lv - 1)));
-const jamBatch = lv => lv;                     // ทำได้ทีละ lv ชิ้น
+const jamBatch = lv => lv;
 
-/* ================= state ================= */
 let role='owner', company=null, plots=[], pendingName='', isNew=false, worker='';
-const $ = id => document.getElementById(id);
-const show = id => { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
-  $(id).classList.add('on'); };
 
 /* ================= เข้าสู่ระบบ ================= */
 function pick(r){ role=r; show('s-name'); $('nameInput').focus(); }
@@ -308,10 +295,7 @@ function renderHud(){
   $('st-veg').textContent  = company.veg  || 0;
   $('st-jam').textContent  = company.jam  || 0;
 }
-
-function renderAll(){
-  renderHud(); renderGrid(); renderShop(); renderFactory();
-}
+function renderAll(){ renderHud(); renderGrid(); renderShop(); renderFactory(); }
 
 function renderGrid(){
   const g = $('grid'); g.innerHTML='';
