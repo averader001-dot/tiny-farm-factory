@@ -99,7 +99,7 @@
 /* ================= Supabase ================= */
 const SUPABASE_URL = "https://liuetggqgvhyfyjdjuck.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dGq6ZrgoxcooBoT2-Y7-GQ_DODw_Deh";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = null;
 
@@ -226,7 +226,7 @@ async function endGame() {
   document.getElementById('finalScore').textContent = peakScore;
   document.getElementById('gameOverBox').classList.remove('hidden');
   try {
-    await supabase.from('scores').insert({ username: currentUser, score: peakScore });
+    await db.from('scores').insert({ username: currentUser, score: peakScore });
   } catch (e) { console.error('save score error', e); }
   loadLeaderboard();
 }
@@ -234,7 +234,7 @@ async function endGame() {
 async function loadLeaderboard() {
   const list = document.getElementById('leaderboardList');
   list.innerHTML = '<li>กำลังโหลด...</li>';
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('scores').select('username, score')
     .order('score', { ascending: false }).limit(10);
   list.innerHTML = '';
